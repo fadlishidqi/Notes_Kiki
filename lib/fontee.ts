@@ -2,11 +2,32 @@ export async function sendWhatsAppReminder(phoneNumber: string, message: string)
   try {
     console.log("Sending reminder to:", phoneNumber)
     
-    // PERBAIKAN: Gunakan absolute URL atau base URL yang benar
-    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 
-                   (typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000')
+    // IMPROVED: Better URL detection untuk production
+    const getBaseUrl = () => {
+      // Priority 1: Environment variable
+      if (process.env.NEXT_PUBLIC_SITE_URL) {
+        return process.env.NEXT_PUBLIC_SITE_URL
+      }
+      
+      // Priority 2: Browser location (client-side)
+      if (typeof window !== 'undefined') {
+        return window.location.origin
+      }
+      
+      // Priority 3: Vercel URL (jika di Vercel)
+      if (process.env.VERCEL_URL) {
+        return `https://${process.env.VERCEL_URL}`
+      }
+      
+      // Priority 4: Default localhost
+      return 'http://localhost:3000'
+    }
     
+    const baseUrl = getBaseUrl()
     const apiUrl = `${baseUrl}/api/send-whatsapp`
+    
+    console.log("Environment:", process.env.NODE_ENV)
+    console.log("Base URL:", baseUrl)
     console.log("API URL:", apiUrl)
     
     const response = await fetch(apiUrl, {

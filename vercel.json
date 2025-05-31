@@ -1,12 +1,13 @@
 {
   "crons": [
     {
-      "path": "/api/check-deadlines",
+      "path": "/api/combined-tasks",
       "schedule": "0 * * * *"
-    },
-    {
-      "path": "/api/keep-alive",
-      "schedule": "0 */12 * * *"
     }
-  ]
+  ],
+  "functions": {
+    "app/api/*/route.ts": {
+      "maxDuration": 10
+    }
+  }
 }
