@@ -6,7 +6,7 @@ import "./globals.css"
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "Modern Notes - Minimalist Note Taking App",
+  title: "Notes App Kimut",
   description: "A modern, minimalist note-taking app with deadline reminders",
   viewport: "width=device-width, initial-scale=1, maximum-scale=1",
     generator: 'v0.dev'
