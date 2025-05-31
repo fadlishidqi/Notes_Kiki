@@ -2,12 +2,12 @@
   "crons": [
     {
       "path": "/api/combined-tasks",
-      "schedule": "0 */6 * * *"
+      "schedule": "0 1 * * *"
     }
   ],
   "functions": {
     "app/api/*/route.ts": {
-      "maxDuration": 15
+      "maxDuration": 10
     }
   }
 }
