@@ -56,20 +56,49 @@ export function NoteForm({ note, onSave, onCancel, isLoading }: NoteFormProps) {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
+    
+    // DEBUG LOG
+    console.log("Form submission data:", {
+      title: title.trim(),
+      content: content.trim(),
+      hasDeadline,
+      date,
+      time
+    })
 
     let deadlineValue = null
-    if (hasDeadline && date) {
-      // Combine date and time or use default time
-      const timeValue = time || "00:00"
-      const deadlineDate = new Date(`${date}T${timeValue}`)
-      deadlineValue = deadlineDate.toISOString()
+    
+    // PERBAIKAN: Tambah default date jika hasDeadline true tapi date kosong
+    if (hasDeadline) {
+      let finalDate = date
+      let finalTime = time || "09:00"
+      
+      // Jika date kosong, gunakan hari ini
+      if (!finalDate) {
+        finalDate = format(new Date(), "yyyy-MM-dd")
+        console.log("Date was empty, using today:", finalDate)
+      }
+      
+      const deadlineDateTime = `${finalDate}T${finalTime}:00`
+      deadlineValue = new Date(deadlineDateTime).toISOString()
+      
+      console.log("Deadline processing:", {
+        originalDate: date,
+        finalDate,
+        finalTime,
+        deadlineDateTime,
+        deadlineValue
+      })
     }
 
-    onSave({
-      title,
-      content: content || null,
+    const noteData = {
+      title: title.trim(),
+      content: content.trim() || null,
       deadline: deadlineValue,
-    })
+    }
+
+    console.log("Final note data being sent:", noteData)
+    onSave(noteData)
   }
 
   // Generate calendar days for the UI
@@ -77,7 +106,7 @@ export function NoteForm({ note, onSave, onCancel, isLoading }: NoteFormProps) {
     const today = new Date()
     const days = []
 
-    for (let i = -3; i <= 10; i++) {
+    for (let i = 0; i <= 10; i++) {
       const day = new Date(today)
       day.setDate(today.getDate() + i)
       days.push({
@@ -168,8 +197,23 @@ export function NoteForm({ note, onSave, onCancel, isLoading }: NoteFormProps) {
                         type="checkbox"
                         id="has-deadline"
                         checked={hasDeadline}
-                        onChange={(e) => setHasDeadline(e.target.checked)}
-                        className="rounded border-emerald-500 bg-gray-900 text-emerald-500"
+                        onChange={(e) => {
+                          const checked = e.target.checked
+                          setHasDeadline(checked)
+                          console.log("Deadline checkbox changed:", checked)
+                          
+                          // PERBAIKAN: Set default date dan time jika checkbox dicentang
+                          if (checked && !date) {
+                            const today = format(new Date(), "yyyy-MM-dd")
+                            setDate(today)
+                            console.log("Auto-setting date to today:", today)
+                          }
+                          if (checked && !time) {
+                            setTime("09:00")
+                            console.log("Auto-setting time to 09:00")
+                          }
+                        }}
+                        className="w-4 h-4 text-emerald-500 bg-gray-900 border-emerald-500 rounded focus:ring-emerald-500"
                       />
                       <label htmlFor="has-deadline" className="text-white">
                         Set deadline untuk reminder
@@ -190,14 +234,17 @@ export function NoteForm({ note, onSave, onCancel, isLoading }: NoteFormProps) {
                                 <motion.button
                                   key={day.dateString}
                                   type="button"
-                                  onClick={() => setDate(day.dateString)}
+                                  onClick={() => {
+                                    setDate(day.dateString)
+                                    console.log("Date selected:", day.dateString)
+                                  }}
                                   className={cn(
-                                    "flex flex-col items-center justify-center rounded-lg p-2 min-w-[3rem]",
+                                    "flex flex-col items-center justify-center rounded-lg p-2 min-w-[3rem] border",
                                     date === day.dateString
-                                      ? "bg-black border border-emerald-500 text-white"
+                                      ? "bg-emerald-500 border-emerald-500 text-white"
                                       : day.isToday
-                                        ? "bg-gray-900 border border-gray-700 text-white"
-                                        : "bg-gray-900 text-gray-300 hover:bg-gray-800",
+                                        ? "bg-gray-900 border-gray-700 text-white"
+                                        : "bg-gray-900 text-gray-300 hover:bg-gray-800 border-gray-700",
                                   )}
                                   whileHover={{ scale: 1.05 }}
                                   whileTap={{ scale: 0.95 }}
@@ -212,6 +259,23 @@ export function NoteForm({ note, onSave, onCancel, isLoading }: NoteFormProps) {
                             </div>
                           </div>
 
+                          {/* Alternative Date Input */}
+                          <div className="mt-4">
+                            <label className="text-sm text-gray-300 flex items-center mb-2">
+                              <Calendar className="h-4 w-4 mr-2" />
+                              Atau pilih tanggal manual
+                            </label>
+                            <Input
+                              type="date"
+                              value={date}
+                              onChange={(e) => {
+                                setDate(e.target.value)
+                                console.log("Manual date input:", e.target.value)
+                              }}
+                              className="bg-gray-900 border-gray-800 text-white focus:border-emerald-500"
+                            />
+                          </div>
+
                           <div className="mt-4">
                             <label className="text-sm text-gray-300 flex items-center">
                               <Clock className="h-4 w-4 mr-2" />
@@ -222,12 +286,15 @@ export function NoteForm({ note, onSave, onCancel, isLoading }: NoteFormProps) {
                                 <motion.button
                                   key={timeOption}
                                   type="button"
-                                  onClick={() => setTime(timeOption)}
+                                  onClick={() => {
+                                    setTime(timeOption)
+                                    console.log("Time selected:", timeOption)
+                                  }}
                                   className={cn(
-                                    "py-2 px-3 rounded-md text-center",
+                                    "py-2 px-3 rounded-md text-center text-sm border",
                                     time === timeOption
-                                      ? "bg-black border border-emerald-500 text-white"
-                                      : "bg-gray-900 text-gray-300 hover:bg-gray-800",
+                                      ? "bg-emerald-500 border-emerald-500 text-white"
+                                      : "bg-gray-900 text-gray-300 hover:bg-gray-800 border-gray-700",
                                   )}
                                   whileHover={{ scale: 1.05 }}
                                   whileTap={{ scale: 0.95 }}
@@ -247,13 +314,17 @@ export function NoteForm({ note, onSave, onCancel, isLoading }: NoteFormProps) {
                               <Input
                                 type="time"
                                 value={time}
-                                onChange={(e) => setTime(e.target.value)}
+                                onChange={(e) => {
+                                  setTime(e.target.value)
+                                  console.log("Manual time input:", e.target.value)
+                                }}
                                 className="bg-gray-900 border-gray-800 text-white pl-10 focus:border-emerald-500"
                               />
                             </div>
                           </div>
 
-                          {date && time && (
+                          {/* Preview */}
+                          {hasDeadline && (
                             <motion.div
                               className="mt-4 p-3 bg-gray-900 rounded-md border border-gray-800"
                               initial={{ opacity: 0, y: 10 }}
@@ -262,12 +333,21 @@ export function NoteForm({ note, onSave, onCancel, isLoading }: NoteFormProps) {
                             >
                               <p className="text-sm text-gray-400">Reminder akan dikirim pada:</p>
                               <p className="text-white font-medium">
-                                {date && time
-                                  ? format(new Date(`${date}T${time}`), "EEEE, d MMMM yyyy - HH:mm", {
-                                      locale: id,
-                                    })
-                                  : "Tanggal dan waktu belum dipilih"}
+                                {date && time ? (
+                                  format(new Date(`${date}T${time}`), "EEEE, d MMMM yyyy - HH:mm", {
+                                    locale: id,
+                                  }) + " WIB"
+                                ) : date ? (
+                                  `${format(new Date(date), "EEEE, d MMMM yyyy", { locale: id })} - ${time || "Waktu belum dipilih"}`
+                                ) : (
+                                  "Tanggal dan waktu belum dipilih"
+                                )}
                               </p>
+                              
+                              {/* Debug Info */}
+                              <div className="mt-2 text-xs text-gray-500">
+                                Debug: date="{date}", time="{time}", hasDeadline={hasDeadline.toString()}
+                              </div>
                             </motion.div>
                           )}
                         </div>

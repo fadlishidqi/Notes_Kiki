@@ -1,0 +1,12 @@
+{
+  "crons": [
+    {
+      "path": "/api/check-deadlines",
+      "schedule": "0 * * * *"
+    },
+    {
+      "path": "/api/keep-alive",
+      "schedule": "0 */12 * * *"
+    }
+  ]
+}
